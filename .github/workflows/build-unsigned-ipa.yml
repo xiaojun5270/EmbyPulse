@@ -18,6 +18,14 @@ jobs:
       - name: Show Xcode Version
         run: xcodebuild -version
 
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Regenerate Xcode Project
+        run: |
+          rm -rf EmbyPulseiOS.xcodeproj
+          xcodegen generate
+
       - name: Build Archive Without Signing
         run: |
           xcodebuild \
