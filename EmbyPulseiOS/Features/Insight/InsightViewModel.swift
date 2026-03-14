@@ -49,6 +49,10 @@ final class InsightViewModel: ObservableObject {
                 actionHint = "深度重扫完成"
             }
         } catch {
+            guard !NetworkError.isCancellation(error) else {
+                isLoadingQuality = false
+                return
+            }
             errorMessage = error.localizedDescription
             if forceRefresh {
                 actionHint = nil
@@ -67,6 +71,10 @@ final class InsightViewModel: ObservableObject {
                 ignores.contains(where: { $0.itemID == id })
             }
         } catch {
+            guard !NetworkError.isCancellation(error) else {
+                isLoadingIgnores = false
+                return
+            }
             errorMessage = error.localizedDescription
             ignores = []
         }
@@ -134,6 +142,10 @@ final class InsightViewModel: ObservableObject {
             await loadQuality(appState: appState, forceRefresh: false)
             await loadIgnores(appState: appState)
         } catch {
+            guard !NetworkError.isCancellation(error) else {
+                isOperating = false
+                return
+            }
             errorMessage = error.localizedDescription
         }
 
@@ -161,6 +173,10 @@ final class InsightViewModel: ObservableObject {
             await loadQuality(appState: appState, forceRefresh: false)
             await loadIgnores(appState: appState)
         } catch {
+            guard !NetworkError.isCancellation(error) else {
+                isOperating = false
+                return
+            }
             errorMessage = error.localizedDescription
         }
 

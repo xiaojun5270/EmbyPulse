@@ -22,6 +22,7 @@ final class HistoryTrendViewModel: ObservableObject {
         do {
             users = try await appState.apiClient.fetchUsers(baseURL: appState.environment.baseURL)
         } catch {
+            guard !NetworkError.isCancellation(error) else { return }
             users = []
         }
     }
@@ -38,6 +39,10 @@ final class HistoryTrendViewModel: ObservableObject {
                 period: period
             )
         } catch {
+            guard !NetworkError.isCancellation(error) else {
+                isLoading = false
+                return
+            }
             rankingItems = []
             errorMessage = error.localizedDescription
         }

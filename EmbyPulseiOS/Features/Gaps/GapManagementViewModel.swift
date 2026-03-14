@@ -154,6 +154,10 @@ final class GapManagementViewModel: ObservableObject {
         do {
             ignores = try await appState.apiClient.fetchGapIgnores(baseURL: appState.environment.baseURL)
         } catch {
+            guard !NetworkError.isCancellation(error) else {
+                isLoadingIgnores = false
+                return
+            }
             errorMessage = error.localizedDescription
             ignores = []
         }
@@ -266,6 +270,7 @@ final class GapManagementViewModel: ObservableObject {
                 errorMessage = backendError
             }
         } catch {
+            guard !NetworkError.isCancellation(error) else { return }
             errorMessage = error.localizedDescription
         }
     }
@@ -274,6 +279,7 @@ final class GapManagementViewModel: ObservableObject {
         do {
             autoScanEnabled = try await appState.apiClient.fetchGapAutoScanEnabled(baseURL: appState.environment.baseURL)
         } catch {
+            guard !NetworkError.isCancellation(error) else { return }
             errorMessage = error.localizedDescription
         }
     }
