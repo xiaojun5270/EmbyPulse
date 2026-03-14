@@ -21,4 +21,40 @@ enum NetworkError: LocalizedError {
             return message
         }
     }
+
+    static func isCancellation(_ error: Error) -> Bool {
+        if error is CancellationError {
+            return true
+        }
+
+        if let urlError = error as? URLError, urlError.code == .cancelled {
+            return true
+        }
+
+        if let networkError = error as? NetworkError {
+            switch networkError {
+            case .transport(let message), .server(let message):
+                return messageLooksCancelled(message)
+            default:
+                break
+            }
+        }
+
+        let nsError = error as NSError
+        if nsError.domain == NSURLErrorDomain && nsError.code == URLError.cancelled.rawValue {
+            return true
+        }
+
+        return messageLooksCancelled(error.localizedDescription)
+    }
+
+    private static func messageLooksCancelled(_ message: String) -> Bool {
+        let normalized = message
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+
+        return normalized.contains("cancelled")
+            || normalized.contains("canceled")
+            || normalized == "cancel"
+    }
 }

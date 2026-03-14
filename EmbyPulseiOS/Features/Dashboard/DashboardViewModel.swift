@@ -19,6 +19,8 @@ final class DashboardViewModel: ObservableObject {
         guard !isLoading else { return }
 
         isLoading = true
+        defer { isLoading = false }
+
         errorMessage = nil
         warningMessage = nil
 
@@ -43,42 +45,63 @@ final class DashboardViewModel: ObservableObject {
         do {
             dashboard = try await dashboardTask
         } catch {
+            if NetworkError.isCancellation(error) {
+                return
+            }
             criticalFailures.append("核心概览")
         }
 
         do {
             liveSessions = try await liveTask
         } catch {
+            if NetworkError.isCancellation(error) {
+                return
+            }
             criticalFailures.append("实时会话")
         }
 
         do {
             latestMedia = try await latestTask
         } catch {
+            if NetworkError.isCancellation(error) {
+                return
+            }
             supplementaryFailureCount += 1
         }
 
         do {
             recentActivities = try await recentTask
         } catch {
+            if NetworkError.isCancellation(error) {
+                return
+            }
             supplementaryFailureCount += 1
         }
 
         do {
             trendPoints = try await trendTask
         } catch {
+            if NetworkError.isCancellation(error) {
+                return
+            }
             supplementaryFailureCount += 1
         }
 
         do {
             libraries = try await librariesTask
         } catch {
+            if NetworkError.isCancellation(error) {
+                return
+            }
             supplementaryFailureCount += 1
         }
 
         do {
             platinumUsers = try await rankingTask
         } catch {
+            if NetworkError.isCancellation(error) {
+                return
+            }
             supplementaryFailureCount += 1
         }
 
@@ -89,7 +112,6 @@ final class DashboardViewModel: ObservableObject {
         }
 
         lastUpdatedAt = Date()
-        isLoading = false
     }
 
     func refreshPlatinumRanking(appState: AppState) async {
@@ -99,6 +121,7 @@ final class DashboardViewModel: ObservableObject {
                 period: platinumPeriod
             )
         } catch {
+            guard !NetworkError.isCancellation(error) else { return }
             errorMessage = error.localizedDescription
         }
     }

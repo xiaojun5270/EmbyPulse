@@ -22,6 +22,7 @@ final class UserManagementViewModel: ObservableObject {
 
     func refreshUsers(appState: AppState) async {
         isLoadingUsers = true
+        defer { isLoadingUsers = false }
         errorMessage = nil
 
         do {
@@ -33,25 +34,24 @@ final class UserManagementViewModel: ObservableObject {
                 return !lhs.isDisabled && rhs.isDisabled
             }
         } catch {
+            guard !NetworkError.isCancellation(error) else { return }
             errorMessage = error.localizedDescription
             users = []
         }
-
-        isLoadingUsers = false
     }
 
     func refreshInvites(appState: AppState) async {
         isLoadingInvites = true
+        defer { isLoadingInvites = false }
         errorMessage = nil
 
         do {
             invites = try await appState.apiClient.fetchInvites(baseURL: appState.environment.baseURL)
         } catch {
+            guard !NetworkError.isCancellation(error) else { return }
             errorMessage = error.localizedDescription
             invites = []
         }
-
-        isLoadingInvites = false
     }
 
     func createUser(

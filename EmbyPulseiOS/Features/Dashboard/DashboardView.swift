@@ -7,7 +7,7 @@ struct DashboardView: View {
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            LazyVStack(alignment: .leading, spacing: ConsoleDesign.sectionSpacing) {
+            LazyVStack(alignment: .leading, spacing: 14) {
                 heroCard
                 momentumStrip
 
@@ -20,75 +20,58 @@ struct DashboardView: View {
                 }
 
                 sectionCard(
-                    title: "媒体库存",
-                    subtitle: "电影、剧集与总收录规模",
-                    symbol: "externaldrive.fill.badge.icloud"
+                    title: "Overview",
+                    subtitle: "Library size, activity and runtime status",
+                    symbol: "rectangle.grid.2x2.fill"
                 ) {
-                    mediaCapacityContent
+                    overviewContent
+                }
+
+                if hasLibrarySection {
+                    sectionCard(
+                        title: "Libraries",
+                        subtitle: "Common libraries and content types",
+                        symbol: "books.vertical.fill"
+                    ) {
+                        libraryViewsContent
+                    }
+                }
+
+                if hasActivitySection {
+                    sectionCard(
+                        title: "Recent Activity",
+                        subtitle: "Latest arrivals and recent playback",
+                        symbol: "sparkles.rectangle.stack.fill"
+                    ) {
+                        activityContent
+                    }
+                }
+
+                if hasInsightSection {
+                    sectionCard(
+                        title: "Trend",
+                        subtitle: "Playback trend and active users",
+                        symbol: "chart.line.uptrend.xyaxis"
+                    ) {
+                        insightContent
+                    }
                 }
 
                 sectionCard(
-                    title: "核心运营指标",
-                    subtitle: "活跃度与播放效率",
-                    symbol: "waveform.path.ecg"
-                ) {
-                    coreMetricsContent
-                }
-
-                sectionCard(
-                    title: "我的媒体库",
-                    subtitle: "库视图与类型分布",
-                    symbol: "books.vertical.fill"
-                ) {
-                    libraryViewsContent
-                }
-
-                sectionCard(
-                    title: "最近入库",
-                    subtitle: "最新同步到库里的内容",
-                    symbol: "square.stack.3d.down.right.fill"
-                ) {
-                    latestMediaContent
-                }
-
-                sectionCard(
-                    title: "最近播放",
-                    subtitle: "用户近期观看记录",
-                    symbol: "play.rectangle.on.rectangle.fill"
-                ) {
-                    recentPlaybackContent
-                }
-
-                sectionCard(
-                    title: "趋势追踪",
-                    subtitle: "近期播放时长走势",
-                    symbol: "chart.bar.xaxis.ascending"
-                ) {
-                    trendTrackingContent
-                }
-
-                sectionCard(
-                    title: "白金观影榜",
-                    subtitle: "高活跃用户排行",
-                    symbol: "trophy.fill"
-                ) {
-                    platinumRankingContent
-                }
-
-                sectionCard(
-                    title: "实时播放",
-                    subtitle: "当前在线会话",
+                    title: "Live Sessions",
+                    subtitle: "Current sessions and playback devices",
                     symbol: "dot.radiowaves.left.and.right"
                 ) {
                     realtimeContent
                 }
             }
-            .padding(ConsoleDesign.pagePadding)
+            .padding(.horizontal, ConsoleDesign.pagePadding)
+            .padding(.top, 10)
             .padding(.bottom, 28)
         }
         .coordinateSpace(name: "dashboard-scroll")
         .background(pageGradient.ignoresSafeArea())
-        .navigationTitle("仪表盘")
+        .navigationTitle("Dashboard")
         .navigationBarTitleDisplayMode(.large)
         .task {
             await viewModel.refresh(appState: appState)
@@ -106,18 +89,17 @@ struct DashboardView: View {
             VStack(alignment: .leading, spacing: 16) {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Emby Pulse 控制台")
+                        Text("Emby Pulse Console")
                             .font(ConsoleDesign.heroTitleFont)
                             .foregroundStyle(.white)
 
-                        Text("媒体运营态势总览")
+                        Text("Live status, playback trend and media operations")
                             .font(.footnote)
-                            .foregroundStyle(Color.white.opacity(0.78))
+                            .foregroundStyle(Color.white.opacity(0.80))
 
                         HStack(spacing: 8) {
-                            heroTag("首页")
-                            heroTag("实时概览")
-                            heroTag(viewModel.isLoading ? "刷新中" : "原生滚动")
+                            heroTag("Home")
+                            heroTag(viewModel.isLoading ? "Refreshing" : "Light Layout")
                         }
                     }
 
@@ -148,19 +130,19 @@ struct DashboardView: View {
                 }
 
                 HStack(spacing: 10) {
-                    heroMetric(title: "总播放", value: "\(viewModel.dashboard?.totalPlays ?? 0)")
-                    heroMetric(title: "活跃用户", value: "\(viewModel.dashboard?.activeUsers ?? 0)")
-                    heroMetric(title: "实时会话", value: "\(viewModel.liveSessions.count)")
+                    heroMetric(title: "Total Plays", value: "\(viewModel.dashboard?.totalPlays ?? 0)")
+                    heroMetric(title: "Active Users", value: "\(viewModel.dashboard?.activeUsers ?? 0)")
+                    heroMetric(title: "Live Sessions", value: "\(viewModel.liveSessions.count)")
                 }
 
                 HStack(spacing: 10) {
-                    Label("更新于 \(lastUpdatedText)", systemImage: "clock")
+                    Label("Updated \(lastUpdatedText)", systemImage: "clock")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(Color.white.opacity(0.78))
 
                     Spacer(minLength: 0)
 
-                    Text(viewModel.liveSessions.isEmpty ? "当前平台空闲" : "当前 \(viewModel.liveSessions.count) 个在线会话")
+                    Text(viewModel.liveSessions.isEmpty ? "No active session" : "\(viewModel.liveSessions.count) active sessions")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 10)
@@ -178,11 +160,11 @@ struct DashboardView: View {
                     .stroke(Color.white.opacity(0.12), lineWidth: 1)
             )
             .shadow(color: Color.black.opacity(isDark ? 0.22 : 0.10), radius: 16, x: 0, y: 12)
-            .offset(y: minY < 0 ? minY * 0.12 : 0)
-            .scaleEffect(stretch > 0 ? 1 + stretch / 1000 : 1, anchor: .top)
+            .offset(y: minY < 0 ? minY * 0.10 : 0)
+            .scaleEffect(stretch > 0 ? 1 + stretch / 1400 : 1, anchor: .top)
             .preference(key: DashboardChromeProgressPreferenceKey.self, value: collapseProgress(for: minY))
         }
-        .frame(height: 208)
+        .frame(height: 194)
     }
 
     private var heroBackground: some View {
@@ -190,13 +172,13 @@ struct DashboardView: View {
             LinearGradient(
                 colors: isDark
                     ? [Color(red: 0.17, green: 0.25, blue: 0.40), Color(red: 0.11, green: 0.18, blue: 0.30)]
-                    : [Color(red: 0.25, green: 0.48, blue: 0.90), Color(red: 0.10, green: 0.69, blue: 0.73)],
+                    : [Color(red: 0.24, green: 0.47, blue: 0.90), Color(red: 0.09, green: 0.69, blue: 0.73)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
 
             Circle()
-                .fill(Color.white.opacity(0.15))
+                .fill(Color.white.opacity(0.14))
                 .frame(width: 150, height: 150)
                 .blur(radius: 18)
                 .offset(x: 24, y: -34)
@@ -240,10 +222,10 @@ struct DashboardView: View {
     private var momentumStrip: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 10) {
-                snapshotPill(title: "媒体总量", value: "\(totalLibraryItems)", subtitle: "库存总览", tint: .indigo)
-                snapshotPill(title: "趋势时长", value: String(format: "%.1f h", totalTrendHours), subtitle: "近期播放", tint: .cyan)
-                snapshotPill(title: "最新入库", value: "\(viewModel.latestMedia.count)", subtitle: "内容更新", tint: .mint)
-                snapshotPill(title: "在线会话", value: "\(viewModel.liveSessions.count)", subtitle: "当前活跃", tint: .orange)
+                snapshotPill(title: "Items", value: "\(totalLibraryItems)", subtitle: "Library", tint: .indigo)
+                snapshotPill(title: "Trend", value: String(format: "%.1f h", totalTrendHours), subtitle: "Recent hours", tint: .cyan)
+                snapshotPill(title: "Latest", value: "\(viewModel.latestMedia.count)", subtitle: "New content", tint: .mint)
+                snapshotPill(title: "Live", value: "\(viewModel.liveSessions.count)", subtitle: "Active now", tint: .orange)
             }
             .padding(.horizontal, 1)
         }
@@ -273,32 +255,60 @@ struct DashboardView: View {
                 .foregroundStyle(.secondary)
         }
         .padding(14)
-        .frame(width: 136, alignment: .leading)
+        .frame(width: 126, alignment: .leading)
         .background(rowCardBackground)
+    }
+
+    private var overviewContent: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            mediaCapacityContent
+
+            Divider().overlay(Color.primary.opacity(0.06))
+
+            coreMetricsContent
+        }
     }
 
     private var mediaCapacityContent: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-            dashboardPill(title: "总收录", value: "\(totalLibraryItems)", tint: .indigo)
-            dashboardPill(title: "电影", value: "\(viewModel.dashboard?.library.movie ?? 0)", tint: .blue)
-            dashboardPill(title: "剧集", value: "\(viewModel.dashboard?.library.series ?? 0)", tint: .mint)
-            dashboardPill(title: "剧集单元", value: "\(viewModel.dashboard?.library.episode ?? 0)", tint: .orange)
+            dashboardPill(title: "Total Items", value: "\(totalLibraryItems)", tint: .indigo)
+            dashboardPill(title: "Movies", value: "\(viewModel.dashboard?.library.movie ?? 0)", tint: .blue)
+            dashboardPill(title: "Series", value: "\(viewModel.dashboard?.library.series ?? 0)", tint: .mint)
+            dashboardPill(title: "Episodes", value: "\(viewModel.dashboard?.library.episode ?? 0)", tint: .orange)
         }
     }
 
     private var coreMetricsContent: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-            dashboardMetricCard("总播放", "\(viewModel.dashboard?.totalPlays ?? 0)", "play.circle.fill", .indigo)
-            dashboardMetricCard("活跃用户", "\(viewModel.dashboard?.activeUsers ?? 0)", "person.2.fill", .blue)
-            dashboardMetricCard("总时长", formattedHours(from: viewModel.dashboard?.totalDuration ?? 0), "clock.fill", .mint)
-            dashboardMetricCard("实时会话", "\(viewModel.liveSessions.count)", "dot.radiowaves.left.and.right", .orange)
+            dashboardMetricCard("Total Plays", "\(viewModel.dashboard?.totalPlays ?? 0)", "play.circle.fill", .indigo)
+            dashboardMetricCard("Active Users", "\(viewModel.dashboard?.activeUsers ?? 0)", "person.2.fill", .blue)
+            dashboardMetricCard("Duration", formattedHours(from: viewModel.dashboard?.totalDuration ?? 0), "clock.fill", .mint)
+            dashboardMetricCard("Live Sessions", "\(viewModel.liveSessions.count)", "dot.radiowaves.left.and.right", .orange)
+        }
+    }
+
+    private var activityContent: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            if !viewModel.latestMedia.isEmpty {
+                moduleTitle("Latest Arrivals", systemImage: "square.stack.3d.down.right.fill")
+                latestMediaContent
+            }
+
+            if !viewModel.latestMedia.isEmpty && !viewModel.recentActivities.isEmpty {
+                Divider().overlay(Color.primary.opacity(0.06))
+            }
+
+            if !viewModel.recentActivities.isEmpty {
+                moduleTitle("Recent Playback", systemImage: "play.rectangle.on.rectangle.fill")
+                recentPlaybackContent
+            }
         }
     }
 
     @ViewBuilder
     private var libraryViewsContent: some View {
         if viewModel.libraries.isEmpty {
-            emptyCard("暂无媒体库视图")
+            emptyCard("No library data")
         } else {
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 12) {
@@ -337,46 +347,11 @@ struct DashboardView: View {
 
     @ViewBuilder
     private var latestMediaContent: some View {
-        if viewModel.latestMedia.isEmpty {
-            emptyCard("暂无最近入库")
-        } else {
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 12) {
-                    ForEach(viewModel.latestMedia.prefix(12)) { item in
-                        VStack(alignment: .leading, spacing: 8) {
-                            AsyncImage(url: posterURL(itemID: item.id)) { phase in
-                                switch phase {
-                                case .success(let image):
-                                    image.resizable().scaledToFill()
-                                default:
-                                    placeholderPoster
-                                }
-                            }
-                            .frame(width: 126, height: 180)
-                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-
-                            Text(item.name)
-                                .font(.caption.weight(.semibold))
-                                .lineLimit(2)
-                                .frame(width: 126, alignment: .leading)
-                        }
-                        .padding(10)
-                        .background(rowCardBackground)
-                    }
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var recentPlaybackContent: some View {
-        if viewModel.recentActivities.isEmpty {
-            emptyCard("暂无最近播放记录")
-        } else {
-            VStack(spacing: 8) {
-                ForEach(viewModel.recentActivities.prefix(6)) { item in
-                    HStack(spacing: 10) {
-                        AsyncImage(url: posterURL(itemID: item.itemID)) { phase in
+        ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: 12) {
+                ForEach(viewModel.latestMedia.prefix(8)) { item in
+                    VStack(alignment: .leading, spacing: 8) {
+                        AsyncImage(url: posterURL(itemID: item.id)) { phase in
                             switch phase {
                             case .success(let image):
                                 image.resizable().scaledToFill()
@@ -384,112 +359,149 @@ struct DashboardView: View {
                                 placeholderPoster
                             }
                         }
-                        .frame(width: 40, height: 58)
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .frame(width: 120, height: 172)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(item.displayName)
-                                .font(.subheadline.weight(.semibold))
-                                .lineLimit(2)
-
-                            Text("\(item.userName) · \(itemType(item.itemType))")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-
-                        Spacer(minLength: 8)
-
-                        Text(compactDate(item.dateCreated))
-                            .font(.caption2.weight(.semibold))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 6)
-                            .background(Color.blue.opacity(isDark ? 0.2 : 0.12))
-                            .clipShape(Capsule())
+                        Text(item.name)
+                            .font(.caption.weight(.semibold))
+                            .lineLimit(2)
+                            .frame(width: 120, alignment: .leading)
                     }
-                    .padding(12)
+                    .padding(10)
                     .background(rowCardBackground)
                 }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var recentPlaybackContent: some View {
+        VStack(spacing: 8) {
+            ForEach(viewModel.recentActivities.prefix(4)) { item in
+                HStack(spacing: 10) {
+                    AsyncImage(url: posterURL(itemID: item.itemID)) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image.resizable().scaledToFill()
+                        default:
+                            placeholderPoster
+                        }
+                    }
+                    .frame(width: 40, height: 58)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(item.displayName)
+                            .font(.subheadline.weight(.semibold))
+                            .lineLimit(2)
+
+                        Text("\(item.userName) · \(itemType(item.itemType))")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer(minLength: 8)
+
+                    Text(compactDate(item.dateCreated))
+                        .font(.caption2.weight(.semibold))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
+                        .background(Color.blue.opacity(isDark ? 0.2 : 0.12))
+                        .clipShape(Capsule())
+                }
+                .padding(12)
+                .background(rowCardBackground)
+            }
+        }
+    }
+
+    private var insightContent: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            if !viewModel.trendPoints.isEmpty {
+                moduleTitle("Playback Trend", systemImage: "chart.bar.xaxis.ascending")
+                trendTrackingContent
+            }
+
+            if !viewModel.trendPoints.isEmpty && !viewModel.platinumUsers.isEmpty {
+                Divider().overlay(Color.primary.opacity(0.06))
+            }
+
+            if !viewModel.platinumUsers.isEmpty {
+                moduleTitle("Top Users", systemImage: "trophy.fill")
+                platinumRankingContent
             }
         }
     }
 
     @ViewBuilder
     private var trendTrackingContent: some View {
-        if viewModel.trendPoints.isEmpty {
-            emptyCard("暂无趋势数据")
-        } else {
-            VStack(alignment: .leading, spacing: 10) {
-                Chart(viewModel.trendPoints) { point in
-                    BarMark(
-                        x: .value("日期", point.label),
-                        y: .value("小时", point.hours)
+        VStack(alignment: .leading, spacing: 10) {
+            Chart(viewModel.trendPoints) { point in
+                BarMark(
+                    x: .value("Date", point.label),
+                    y: .value("Hours", point.hours)
+                )
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [Color.blue, Color.cyan],
+                        startPoint: .top,
+                        endPoint: .bottom
                     )
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [Color.blue, Color.cyan],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                }
-                .frame(height: 220)
-                .chartYAxis {
-                    AxisMarks(position: .leading)
-                }
-                .chartXAxis {
-                    AxisMarks(values: .automatic(desiredCount: 6))
-                }
-
-                HStack(spacing: 8) {
-                    dashboardPill(title: "累计时长", value: String(format: "%.1f 小时", totalTrendHours), tint: .cyan)
-                    dashboardPill(title: "数据点", value: "\(viewModel.trendPoints.count)", tint: .indigo)
-                }
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
             }
-            .padding(12)
-            .background(rowCardBackground)
+            .frame(height: 206)
+            .chartYAxis {
+                AxisMarks(position: .leading)
+            }
+            .chartXAxis {
+                AxisMarks(values: .automatic(desiredCount: 6))
+            }
+
+            HStack(spacing: 8) {
+                dashboardPill(title: "Hours", value: String(format: "%.1f h", totalTrendHours), tint: .cyan)
+                dashboardPill(title: "Points", value: "\(viewModel.trendPoints.count)", tint: .indigo)
+            }
         }
+        .padding(12)
+        .background(rowCardBackground)
     }
 
     @ViewBuilder
     private var platinumRankingContent: some View {
         HStack(spacing: 8) {
-            periodChip(title: "今日", period: .day)
-            periodChip(title: "本周", period: .week)
-            periodChip(title: "本月", period: .month)
-            periodChip(title: "总榜", period: .all)
+            periodChip(title: "Day", period: .day)
+            periodChip(title: "Week", period: .week)
+            periodChip(title: "Month", period: .month)
+            periodChip(title: "All", period: .all)
         }
 
-        if viewModel.platinumUsers.isEmpty {
-            emptyCard("暂无榜单数据")
-        } else {
-            VStack(spacing: 8) {
-                ForEach(Array(viewModel.platinumUsers.prefix(5).enumerated()), id: \.element.id) { index, item in
-                    HStack(spacing: 10) {
-                        Text("#\(index + 1)")
-                            .font(.caption.bold())
-                            .frame(width: 36, height: 24)
-                            .background(index == 0 ? Color.orange.opacity(0.28) : Color.yellow.opacity(0.18))
-                            .clipShape(Capsule())
+        VStack(spacing: 8) {
+            ForEach(Array(viewModel.platinumUsers.prefix(4).enumerated()), id: \.element.id) { index, item in
+                HStack(spacing: 10) {
+                    Text("#\(index + 1)")
+                        .font(.caption.bold())
+                        .frame(width: 36, height: 24)
+                        .background(index == 0 ? Color.orange.opacity(0.28) : Color.yellow.opacity(0.18))
+                        .clipShape(Capsule())
 
-                        Image(systemName: "person.crop.circle.fill")
-                            .font(.title3)
-                            .foregroundStyle(.indigo)
+                    Image(systemName: "person.crop.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(.indigo)
 
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(item.userName)
-                                .font(.subheadline.weight(.semibold))
-                                .lineLimit(1)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(item.userName)
+                            .font(.subheadline.weight(.semibold))
+                            .lineLimit(1)
 
-                            Text("播放 \(item.plays) 次 · \(String(format: "%.1f", item.totalHours)) 小时")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer(minLength: 0)
+                        Text("Plays \(item.plays) · \(String(format: "%.1f", item.totalHours)) h")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
-                    .padding(12)
-                    .background(rowCardBackground)
+                    Spacer(minLength: 0)
                 }
+                .padding(12)
+                .background(rowCardBackground)
             }
         }
     }
@@ -497,10 +509,10 @@ struct DashboardView: View {
     @ViewBuilder
     private var realtimeContent: some View {
         if viewModel.liveSessions.isEmpty {
-            emptyCard("当前没有正在播放的会话")
+            emptyCard("No live session")
         } else {
             VStack(spacing: 8) {
-                ForEach(viewModel.liveSessions.prefix(6)) { session in
+                ForEach(viewModel.liveSessions.prefix(4)) { session in
                     HStack(alignment: .top, spacing: 10) {
                         Circle()
                             .fill(Color.mint)
@@ -508,10 +520,10 @@ struct DashboardView: View {
                             .padding(.top, 6)
 
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(session.nowPlayingItem?.name ?? "未知内容")
+                            Text(session.nowPlayingItem?.name ?? "Unknown Content")
                                 .font(.subheadline.weight(.semibold))
 
-                            Text("\(session.userName ?? "未知用户") · \(session.client ?? "未知客户端") · \(session.deviceName ?? "未知设备")")
+                            Text("\(session.userName ?? "Unknown User") · \(session.client ?? "Unknown Client") · \(session.deviceName ?? "Unknown Device")")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -524,6 +536,24 @@ struct DashboardView: View {
         }
     }
 
+    private func moduleTitle(_ text: String, systemImage: String) -> some View {
+        Label(text, systemImage: systemImage)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(.secondary)
+    }
+
+    private var hasLibrarySection: Bool {
+        !viewModel.libraries.isEmpty
+    }
+
+    private var hasActivitySection: Bool {
+        !viewModel.latestMedia.isEmpty || !viewModel.recentActivities.isEmpty
+    }
+
+    private var hasInsightSection: Bool {
+        !viewModel.trendPoints.isEmpty || !viewModel.platinumUsers.isEmpty
+    }
+
     private var totalLibraryItems: Int {
         let library = viewModel.dashboard?.library
         return (library?.movie ?? 0) + (library?.series ?? 0) + (library?.episode ?? 0)
@@ -534,9 +564,9 @@ struct DashboardView: View {
     }
 
     private var lastUpdatedText: String {
-        guard let date = viewModel.lastUpdatedAt else { return "尚未刷新" }
+        guard let date = viewModel.lastUpdatedAt else { return "Never" }
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "MM-dd HH:mm"
         return formatter.string(from: date)
     }
@@ -572,7 +602,7 @@ struct DashboardView: View {
 
             content()
         }
-        .padding(14)
+        .padding(13)
         .background(cardBackground)
     }
 
@@ -671,7 +701,7 @@ struct DashboardView: View {
             .foregroundStyle(.red)
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.red.opacity(0.1))
+            .background(Color.red.opacity(0.10))
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
@@ -683,22 +713,22 @@ struct DashboardView: View {
     private func collectionTypeTitle(_ raw: String) -> String {
         switch raw.lowercased() {
         case "movies", "movie":
-            return "电影库"
+            return "Movie Library"
         case "tvshows", "tvshow", "series":
-            return "剧集库"
+            return "Series Library"
         case "music":
-            return "音乐库"
+            return "Music Library"
         default:
-            return raw.isEmpty ? "未知类型" : raw
+            return raw.isEmpty ? "Unknown Type" : raw
         }
     }
 
     private func itemType(_ raw: String) -> String {
         switch raw.lowercased() {
         case "movie":
-            return "电影"
+            return "Movie"
         case "episode":
-            return "剧集"
+            return "Episode"
         default:
             return raw
         }

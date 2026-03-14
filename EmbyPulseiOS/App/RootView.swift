@@ -6,7 +6,7 @@ struct RootView: View {
     var body: some View {
         Group {
             if appState.isCheckingSession {
-                ProgressView("正在检查会话...")
+                ProgressView("Checking session...")
             } else if appState.isAuthenticated {
                 MainTabView()
             } else {
@@ -31,7 +31,7 @@ private struct MainTabView: View {
                 DashboardView()
             }
             .tabItem {
-                Label("仪表盘", systemImage: "rectangle.grid.2x2.fill")
+                Label("Dashboard", systemImage: "rectangle.grid.2x2.fill")
             }
             .tag(MainTab.dashboard)
 
@@ -39,7 +39,7 @@ private struct MainTabView: View {
                 AnalysisHubView()
             }
             .tabItem {
-                Label("分析", systemImage: "chart.line.uptrend.xyaxis")
+                Label("Analysis", systemImage: "chart.xyaxis.line")
             }
             .tag(MainTab.analysis)
 
@@ -47,7 +47,7 @@ private struct MainTabView: View {
                 RequestsView()
             }
             .tabItem {
-                Label("工单", systemImage: "list.bullet.clipboard")
+                Label("Requests", systemImage: "text.bubble.fill")
             }
             .tag(MainTab.requests)
 
@@ -55,7 +55,7 @@ private struct MainTabView: View {
                 UserManagementView()
             }
             .tabItem {
-                Label("用户", systemImage: "person.2.fill")
+                Label("Users", systemImage: "person.3.fill")
             }
             .tag(MainTab.users)
 
@@ -63,10 +63,14 @@ private struct MainTabView: View {
                 MoreHubView()
             }
             .tabItem {
-                Label("更多", systemImage: "square.grid.2x2")
+                Label("More", systemImage: "ellipsis.circle.fill")
             }
             .tag(MainTab.more)
         }
+        .tint(.indigo)
+        .toolbarBackground(.visible, for: .tabBar)
+        .toolbarBackground(.ultraThinMaterial, for: .tabBar)
+        .toolbarColorScheme(appState.appearanceMode == .dark ? .dark : .light, for: .tabBar)
         .safeAreaInset(edge: .top) {
             topActionBar
         }
@@ -100,68 +104,66 @@ private struct MainTabView: View {
             Button {
                 showingSearch = true
             } label: {
-                HStack(spacing: 6) {
+                HStack(spacing: 7) {
                     Image(systemName: "magnifyingglass")
-                    Text("搜索媒体库")
+                        .font(.subheadline.weight(.semibold))
+
+                    Text("Search Library")
+                        .font(.subheadline.weight(.semibold))
+                        .lineLimit(1)
                 }
-                .font(.subheadline.weight(.semibold))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 9)
-                .background(
-                    LinearGradient(
-                        colors: [Color.indigo.opacity(0.16), Color.cyan.opacity(0.12)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 13)
+                .padding(.vertical, 10)
+                .background(chipBackground(tint: .indigo))
                 .clipShape(Capsule())
             }
             .buttonStyle(.plain)
 
             Spacer(minLength: 8)
 
-            Text(appState.appearanceMode == .dark ? "暗黑" : "浅色")
+            Text(appState.appearanceMode == .dark ? "Dark" : "Light")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
-                .padding(.horizontal, 8)
+                .padding(.horizontal, 9)
                 .padding(.vertical, 6)
-                .background(Color.secondary.opacity(0.12))
+                .background(chipBackground(tint: .secondary))
                 .clipShape(Capsule())
 
             Button {
                 appState.toggleAppearance()
             } label: {
-                Image(systemName: appState.appearanceMode == .dark ? "sun.max.fill" : "moon.fill")
+                Image(systemName: appState.appearanceMode == .dark ? "sun.max.fill" : "moon.stars.fill")
                     .font(.subheadline.weight(.semibold))
-                    .frame(width: 34, height: 34)
-                    .background(Color.secondary.opacity(0.14))
+                    .foregroundStyle(.primary)
+                    .frame(width: 36, height: 36)
+                    .background(chipBackground(tint: .secondary))
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(appState.appearanceMode == .dark ? "切换到浅色模式" : "切换到暗黑模式")
+            .accessibilityLabel(appState.appearanceMode == .dark ? "Switch to light mode" : "Switch to dark mode")
 
             AdminAccountMenu()
         }
         .padding(10)
         .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .fill(
                             LinearGradient(
                                 colors: [
-                                    Color.white.opacity(appState.appearanceMode == .dark ? 0.10 : 0.34),
-                                    Color.white.opacity(0.01)
+                                    Color.white.opacity(appState.appearanceMode == .dark ? 0.08 : 0.32),
+                                    Color.white.opacity(0.02)
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .stroke(
                             appState.appearanceMode == .dark ? Color.white.opacity(0.10) : Color.black.opacity(0.05),
                             lineWidth: 1
@@ -175,18 +177,26 @@ private struct MainTabView: View {
                 )
         )
         .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.top, 6)
+        .padding(.bottom, 4)
         .background(
             LinearGradient(
                 colors: appState.appearanceMode == .dark
-                    ? [Color(red: 0.07, green: 0.10, blue: 0.15).opacity(0.84), Color.clear]
-                    : [Color.white.opacity(0.92), Color.clear],
+                    ? [Color(red: 0.07, green: 0.10, blue: 0.15).opacity(0.80), Color.clear]
+                    : [Color.white.opacity(0.88), Color.clear],
                 startPoint: .top,
                 endPoint: .bottom
             )
         )
         .overlay(alignment: .bottom) {
-            Divider().opacity(0.22)
+            Divider().opacity(0.18)
+        }
+    }
+
+    private func chipBackground(tint: Color) -> some View {
+        ZStack {
+            tint.opacity(appState.appearanceMode == .dark ? 0.18 : 0.10)
+            Color.white.opacity(appState.appearanceMode == .dark ? 0.04 : 0.36)
         }
     }
 }

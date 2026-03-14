@@ -12,6 +12,8 @@ final class RequestsViewModel: ObservableObject {
 
     func load(appState: AppState) async {
         isLoading = true
+        defer { isLoading = false }
+
         errorMessage = nil
 
         do {
@@ -24,10 +26,9 @@ final class RequestsViewModel: ObservableObject {
             }
             selectedRequestIDs = selectedRequestIDs.intersection(Set(requests.map(\.id)))
         } catch {
+            guard !NetworkError.isCancellation(error) else { return }
             errorMessage = error.localizedDescription
         }
-
-        isLoading = false
     }
 
     func perform(
@@ -37,6 +38,8 @@ final class RequestsViewModel: ObservableObject {
         appState: AppState
     ) async {
         processingRequestID = request.id
+        defer { processingRequestID = nil }
+
         errorMessage = nil
         actionHint = nil
 
@@ -51,10 +54,9 @@ final class RequestsViewModel: ObservableObject {
             actionHint = "操作完成：\(action.title)"
             await load(appState: appState)
         } catch {
+            guard !NetworkError.isCancellation(error) else { return }
             errorMessage = error.localizedDescription
         }
-
-        processingRequestID = nil
     }
 
     func isSelected(_ request: ManagedRequest) -> Bool {
@@ -105,6 +107,8 @@ final class RequestsViewModel: ObservableObject {
         }
 
         isBatchProcessing = true
+        defer { isBatchProcessing = false }
+
         errorMessage = nil
         actionHint = nil
 
@@ -119,9 +123,8 @@ final class RequestsViewModel: ObservableObject {
             selectedRequestIDs.subtract(selectedItems.map { "\($0.tmdbID)-\($0.season)" })
             await load(appState: appState)
         } catch {
+            guard !NetworkError.isCancellation(error) else { return }
             errorMessage = error.localizedDescription
         }
-
-        isBatchProcessing = false
     }
 }
