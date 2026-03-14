@@ -1,0 +1,46 @@
+name: Build Unsigned IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build-unsigned-ipa:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Xcode Version
+        run: xcodebuild -version
+
+      - name: Build Archive Without Signing
+        run: |
+          xcodebuild \
+            -project EmbyPulseiOS.xcodeproj \
+            -scheme EmbyPulseiOS \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            -archivePath "$RUNNER_TEMP/EmbyPulseiOS.xcarchive" \
+            clean archive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM=""
+
+      - name: Package Unsigned IPA
+        run: |
+          mkdir -p "$RUNNER_TEMP/Payload"
+          cp -R "$RUNNER_TEMP/EmbyPulseiOS.xcarchive/Products/Applications/EmbyPulseiOS.app" "$RUNNER_TEMP/Payload/EmbyPulseiOS.app"
+          ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/Payload" "$RUNNER_TEMP/EmbyPulseiOS-unsigned.ipa"
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EmbyPulseiOS-unsigned-ipa
+          path: ${{ runner.temp }}/EmbyPulseiOS-unsigned.ipa
+          if-no-files-found: error

@@ -1,0 +1,12 @@
+.DS_Store
+_upstream_emby_pulse/
+
+DerivedData/
+build/
+Build/
+*.ipa
+*.xcarchive
+
+EmbyPulseiOS.xcodeproj/project.xcworkspace/xcuserdata/
+EmbyPulseiOS.xcodeproj/xcuserdata/
+*.xcuserstate
