@@ -130,10 +130,6 @@ final class AdvancedStatsViewModel: ObservableObject {
             groupError = await loadLibraries(appState: appState, requestID: requestID)
         }
 
-        guard !Task.isCancelled else {
-            loadingGroups.remove(group)
-            return
-        }
         guard isCurrentRequest(requestID, for: group) else { return }
         loadingGroups.remove(group)
         loadedGroups.insert(group)
@@ -187,7 +183,6 @@ final class AdvancedStatsViewModel: ObservableObject {
         do {
             users = try await appState.apiClient.fetchUsers(baseURL: appState.environment.baseURL)
         } catch {
-            guard !NetworkError.isCancellation(error) else { return }
             users = []
         }
     }
@@ -231,7 +226,6 @@ final class AdvancedStatsViewModel: ObservableObject {
             badges = result
         } catch {
             guard isCurrentRequest(requestID, for: .overviewBundle) else { return nil }
-            guard !NetworkError.isCancellation(error) else { return nil }
             badges = []
             errors.append("勋章")
         }
@@ -247,7 +241,6 @@ final class AdvancedStatsViewModel: ObservableObject {
             userDetails = result
         } catch {
             guard isCurrentRequest(requestID, for: .overviewBundle) else { return nil }
-            guard !NetworkError.isCancellation(error) else { return nil }
             userDetails = nil
             errors.append("用户画像")
         }
@@ -263,7 +256,6 @@ final class AdvancedStatsViewModel: ObservableObject {
             monthlyPoints = result
         } catch {
             guard isCurrentRequest(requestID, for: .overviewBundle) else { return nil }
-            guard !NetworkError.isCancellation(error) else { return nil }
             monthlyPoints = []
             errors.append("月度趋势")
         }
@@ -287,7 +279,6 @@ final class AdvancedStatsViewModel: ObservableObject {
             return nil
         } catch {
             guard isCurrentRequest(requestID, for: .topMovies) else { return nil }
-            guard !NetworkError.isCancellation(error) else { return nil }
             topMovies = []
             return error.localizedDescription
         }
@@ -304,7 +295,6 @@ final class AdvancedStatsViewModel: ObservableObject {
             return nil
         } catch {
             guard isCurrentRequest(requestID, for: .topUsers) else { return nil }
-            guard !NetworkError.isCancellation(error) else { return nil }
             topUsers = []
             return error.localizedDescription
         }
@@ -321,7 +311,6 @@ final class AdvancedStatsViewModel: ObservableObject {
             return nil
         } catch {
             guard isCurrentRequest(requestID, for: .recent) else { return nil }
-            guard !NetworkError.isCancellation(error) else { return nil }
             recentActivities = []
             return error.localizedDescription
         }
@@ -338,7 +327,6 @@ final class AdvancedStatsViewModel: ObservableObject {
             return nil
         } catch {
             guard isCurrentRequest(requestID, for: .latest) else { return nil }
-            guard !NetworkError.isCancellation(error) else { return nil }
             latestMedia = []
             return error.localizedDescription
         }
@@ -354,7 +342,6 @@ final class AdvancedStatsViewModel: ObservableObject {
             return nil
         } catch {
             guard isCurrentRequest(requestID, for: .libraries) else { return nil }
-            guard !NetworkError.isCancellation(error) else { return nil }
             libraries = []
             return error.localizedDescription
         }
@@ -380,7 +367,6 @@ final class AdvancedStatsViewModel: ObservableObject {
 
         warningMessage = "网络波动，正在重试加载失败区块..."
         try? await Task.sleep(nanoseconds: 500_000_000)
-        guard !Task.isCancelled else { return }
         await reload(groups: failedGroups, appState: appState, force: true)
     }
 
@@ -388,14 +374,10 @@ final class AdvancedStatsViewModel: ObservableObject {
         do {
             return try await operation()
         } catch {
-            if NetworkError.isCancellation(error) {
-                throw error
-            }
             guard shouldRetry(error) else {
                 throw error
             }
             try? await Task.sleep(nanoseconds: 600_000_000)
-            try Task.checkCancellation()
             return try await operation()
         }
     }

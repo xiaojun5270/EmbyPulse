@@ -16,11 +16,7 @@ final class DashboardViewModel: ObservableObject {
     @Published var lastUpdatedAt: Date?
 
     func refresh(appState: AppState) async {
-        guard !isLoading else { return }
-
         isLoading = true
-        defer { isLoading = false }
-
         errorMessage = nil
         warningMessage = nil
 
@@ -39,79 +35,66 @@ final class DashboardViewModel: ObservableObject {
             period: platinumPeriod
         )
 
-        var criticalFailures: [String] = []
-        var supplementaryFailureCount = 0
+        var errors: [String] = []
 
         do {
             dashboard = try await dashboardTask
         } catch {
-            if NetworkError.isCancellation(error) {
-                return
-            }
-            criticalFailures.append("核心概览")
+            dashboard = nil
+            errors.append("仪表盘指标")
         }
 
         do {
             liveSessions = try await liveTask
         } catch {
-            if NetworkError.isCancellation(error) {
-                return
-            }
-            criticalFailures.append("实时会话")
+            liveSessions = []
+            errors.append("实时会话")
         }
 
         do {
             latestMedia = try await latestTask
         } catch {
-            if NetworkError.isCancellation(error) {
-                return
-            }
-            supplementaryFailureCount += 1
+            latestMedia = []
+            errors.append("最近入库")
         }
 
         do {
             recentActivities = try await recentTask
         } catch {
-            if NetworkError.isCancellation(error) {
-                return
-            }
-            supplementaryFailureCount += 1
+            recentActivities = []
+            errors.append("最近播放")
         }
 
         do {
             trendPoints = try await trendTask
         } catch {
-            if NetworkError.isCancellation(error) {
-                return
-            }
-            supplementaryFailureCount += 1
+            trendPoints = []
+            errors.append("趋势追踪")
         }
 
         do {
             libraries = try await librariesTask
         } catch {
-            if NetworkError.isCancellation(error) {
-                return
-            }
-            supplementaryFailureCount += 1
+            libraries = []
+            errors.append("我的媒体库")
         }
 
         do {
             platinumUsers = try await rankingTask
         } catch {
-            if NetworkError.isCancellation(error) {
-                return
-            }
-            supplementaryFailureCount += 1
+            platinumUsers = []
+            errors.append("白金观影榜")
         }
 
-        if let first = criticalFailures.first {
+        if let first = errors.first {
             errorMessage = "加载失败：\(first)"
-        } else if lastUpdatedAt == nil, supplementaryFailureCount > 0 {
-            warningMessage = "部分扩展模块首次加载失败"
         }
-
+        if errors.count > 1 {
+            warningMessage = "部分模块加载失败（\(errors.count)项）"
+        }
         lastUpdatedAt = Date()
+
+        isLoading = false
     }
 
     func refreshPlatinumRanking(appState: AppState) async {
@@ -121,7 +104,7 @@ final class DashboardViewModel: ObservableObject {
                 period: platinumPeriod
             )
         } catch {
-            guard !NetworkError.isCancellation(error) else { return }
+            platinumUsers = []
             errorMessage = error.localizedDescription
         }
     }

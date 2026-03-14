@@ -24,10 +24,6 @@ final class ReportWorkshopViewModel: ObservableObject {
         do {
             users = try await appState.apiClient.fetchUsers(baseURL: appState.environment.baseURL)
         } catch {
-            guard !NetworkError.isCancellation(error) else {
-                isLoadingUsers = false
-                return
-            }
             users = []
             errorMessage = error.localizedDescription
         }
@@ -48,10 +44,6 @@ final class ReportWorkshopViewModel: ObservableObject {
             )
             previewNonce = UUID().uuidString
         } catch {
-            guard !NetworkError.isCancellation(error) else {
-                isLoadingData = false
-                return
-            }
             posterData = nil
             errorMessage = error.localizedDescription
         }
@@ -73,10 +65,6 @@ final class ReportWorkshopViewModel: ObservableObject {
             )
             actionHint = "报表推送成功"
         } catch {
-            guard !NetworkError.isCancellation(error) else {
-                isPushing = false
-                return
-            }
             errorMessage = error.localizedDescription
         }
 

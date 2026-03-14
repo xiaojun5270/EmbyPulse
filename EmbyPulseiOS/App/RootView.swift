@@ -23,7 +23,6 @@ private struct MainTabView: View {
     @EnvironmentObject private var appState: AppState
     @State private var selectedTab: MainTab = .dashboard
     @State private var showingSearch = false
-    @State private var dashboardCollapseProgress: CGFloat = 0
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -31,7 +30,7 @@ private struct MainTabView: View {
                 DashboardView()
             }
             .tabItem {
-                Label("仪表板", systemImage: "rectangle.grid.2x2.fill")
+                Label("仪表盘", systemImage: "rectangle.grid.2x2.fill")
             }
             .tag(MainTab.dashboard)
 
@@ -39,7 +38,7 @@ private struct MainTabView: View {
                 AnalysisHubView()
             }
             .tabItem {
-                Label("分析", systemImage: "chart.xyaxis.line")
+                Label("分析", systemImage: "chart.line.uptrend.xyaxis")
             }
             .tag(MainTab.analysis)
 
@@ -47,7 +46,7 @@ private struct MainTabView: View {
                 RequestsView()
             }
             .tabItem {
-                Label("工单", systemImage: "text.bubble.fill")
+                Label("工单", systemImage: "list.bullet.clipboard")
             }
             .tag(MainTab.requests)
 
@@ -55,7 +54,7 @@ private struct MainTabView: View {
                 UserManagementView()
             }
             .tabItem {
-                Label("用户", systemImage: "person.3.fill")
+                Label("用户", systemImage: "person.2.fill")
             }
             .tag(MainTab.users)
 
@@ -63,26 +62,12 @@ private struct MainTabView: View {
                 MoreHubView()
             }
             .tabItem {
-                Label("更多", systemImage: "ellipsis.circle.fill")
+                Label("更多", systemImage: "square.grid.2x2")
             }
             .tag(MainTab.more)
         }
-        .tint(.indigo)
-        .toolbarBackground(.visible, for: .tabBar)
-        .toolbarBackground(.ultraThinMaterial, for: .tabBar)
-        .toolbarColorScheme(appState.appearanceMode == .dark ? .dark : .light, for: .tabBar)
         .safeAreaInset(edge: .top) {
             topActionBar
-        }
-        .onPreferenceChange(DashboardChromeProgressPreferenceKey.self) { value in
-            if selectedTab == .dashboard {
-                dashboardCollapseProgress = value
-            }
-        }
-        .onChange(of: selectedTab) { tab in
-            if tab != .dashboard {
-                dashboardCollapseProgress = 0
-            }
         }
         .sheet(isPresented: $showingSearch) {
             NavigationStack {
@@ -98,107 +83,85 @@ private struct MainTabView: View {
     }
 
     private var topActionBar: some View {
-        let progress = selectedTab == .dashboard ? min(max(dashboardCollapseProgress, 0), 1) : 0
-
-        return HStack(spacing: 10) {
+        HStack(spacing: 10) {
             Button {
                 showingSearch = true
             } label: {
-                HStack(spacing: 7) {
+                HStack(spacing: 6) {
                     Image(systemName: "magnifyingglass")
-                        .font(.subheadline.weight(.semibold))
-
                     Text("搜索媒体库")
-                        .font(.subheadline.weight(.semibold))
-                        .lineLimit(1)
                 }
-                .foregroundStyle(.primary)
-                .padding(.horizontal, 13)
-                .padding(.vertical, 10)
-                .background(chipBackground(tint: .indigo))
+                .font(.subheadline.weight(.semibold))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 9)
+                .background(
+                    LinearGradient(
+                        colors: [Color.indigo.opacity(0.16), Color.cyan.opacity(0.12)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
                 .clipShape(Capsule())
             }
             .buttonStyle(.plain)
 
             Spacer(minLength: 8)
 
-            Text(appState.appearanceMode == .dark ? "深色" : "浅色")
+            Text(appState.appearanceMode == .dark ? "暗黑" : "浅色")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
-                .padding(.horizontal, 9)
+                .padding(.horizontal, 8)
                 .padding(.vertical, 6)
-                .background(chipBackground(tint: .secondary))
+                .background(Color.secondary.opacity(0.12))
                 .clipShape(Capsule())
 
             Button {
                 appState.toggleAppearance()
             } label: {
-                Image(systemName: appState.appearanceMode == .dark ? "sun.max.fill" : "moon.stars.fill")
+                Image(systemName: appState.appearanceMode == .dark ? "sun.max.fill" : "moon.fill")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.primary)
-                    .frame(width: 36, height: 36)
-                    .background(chipBackground(tint: .secondary))
+                    .frame(width: 34, height: 34)
+                    .background(Color.secondary.opacity(0.14))
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(appState.appearanceMode == .dark ? "切换到浅色模式" : "切换到深色模式")
+            .accessibilityLabel(appState.appearanceMode == .dark ? "切换到浅色模式" : "切换到暗黑模式")
 
             AdminAccountMenu()
         }
         .padding(10)
         .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(appState.appearanceMode == .dark ? 0.08 : 0.32),
-                                    Color.white.opacity(0.02)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(
+                    appState.appearanceMode == .dark
+                        ? Color(red: 0.14, green: 0.16, blue: 0.20).opacity(0.96)
+                        : Color.white.opacity(0.9)
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .stroke(
                             appState.appearanceMode == .dark ? Color.white.opacity(0.10) : Color.black.opacity(0.05),
                             lineWidth: 1
                         )
                 )
-                .shadow(
-                    color: Color.black.opacity(appState.appearanceMode == .dark ? 0.22 : 0.08),
-                    radius: 10 + (2 * progress),
-                    x: 0,
-                    y: 4
-                )
+                .shadow(color: Color.black.opacity(appState.appearanceMode == .dark ? 0.22 : 0.06), radius: 8, x: 0, y: 4)
         )
         .padding(.horizontal, 12)
-        .padding(.top, 6)
-        .padding(.bottom, 4)
+        .padding(.vertical, 6)
         .background(
             LinearGradient(
                 colors: appState.appearanceMode == .dark
-                    ? [Color(red: 0.07, green: 0.10, blue: 0.15).opacity(0.80), Color.clear]
-                    : [Color.white.opacity(0.88), Color.clear],
+                    ? [Color(red: 0.07, green: 0.10, blue: 0.15).opacity(0.82), Color.clear]
+                    : [Color.white.opacity(0.9), Color.clear],
                 startPoint: .top,
                 endPoint: .bottom
             )
         )
         .overlay(alignment: .bottom) {
-            Divider().opacity(0.18)
+            Divider().opacity(0.22)
         }
     }
 
-    private func chipBackground(tint: Color) -> some View {
-        ZStack {
-            tint.opacity(appState.appearanceMode == .dark ? 0.18 : 0.10)
-            Color.white.opacity(appState.appearanceMode == .dark ? 0.04 : 0.36)
-        }
-    }
 }
 
 private enum MainTab: Hashable {

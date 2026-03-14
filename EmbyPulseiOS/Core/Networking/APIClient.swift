@@ -1288,9 +1288,6 @@ final class APIClient {
         } catch let error as NetworkError {
             throw error
         } catch {
-            if NetworkError.isCancellation(error) {
-                throw error
-            }
             throw NetworkError.transport(message: error.localizedDescription)
         }
     }
@@ -1305,10 +1302,6 @@ final class APIClient {
             do {
                 return try await session.data(for: request)
             } catch {
-                if NetworkError.isCancellation(error) {
-                    throw error
-                }
-
                 lastError = error
                 guard attempt < retryCount, shouldRetryTransportError(error) else {
                     throw error

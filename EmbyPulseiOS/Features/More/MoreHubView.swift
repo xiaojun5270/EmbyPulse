@@ -42,12 +42,6 @@ struct MoreHubView: View {
                     }
 
                     NavigationLink {
-                        ClientsControlView().consoleBackButton()
-                    } label: {
-                        MoreRow(title: "客户端管控", subtitle: "黑名单、设备统计与阻断执行", symbol: "desktopcomputer.trianglebadge.exclamationmark", isDark: isDark)
-                    }
-
-                    NavigationLink {
                         SystemSettingsView().consoleBackButton()
                     } label: {
                         MoreRow(title: "系统设置中心", subtitle: "Emby/TMDB/MP 与数据库工具", symbol: "slider.horizontal.3", isDark: isDark)
