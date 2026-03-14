@@ -12,12 +12,11 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 30
     env:
-      PROJECT_NAME: EmbyPulseiOS
       SCHEME_NAME: EmbyPulseiOS
       XCODE_VERSION: "15.4"
-      ARCHIVE_PATH: ${{ runner.temp }}/EmbyPulseiOS.xcarchive
-      RESULT_BUNDLE_PATH: ${{ runner.temp }}/EmbyPulseiOS.xcresult
-      IPA_PATH: ${{ runner.temp }}/EmbyPulseiOS-unsigned.ipa
+      ARCHIVE_NAME: EmbyPulseiOS.xcarchive
+      RESULT_BUNDLE_NAME: EmbyPulseiOS.xcresult
+      IPA_NAME: EmbyPulseiOS-unsigned.ipa
 
     steps:
       - name: Checkout
@@ -59,6 +58,8 @@ jobs:
 
       - name: Build Archive Without Signing
         run: |
+          ARCHIVE_PATH="$RUNNER_TEMP/$ARCHIVE_NAME"
+          RESULT_BUNDLE_PATH="$RUNNER_TEMP/$RESULT_BUNDLE_NAME"
           xcodebuild \
             -project EmbyPulseiOS.xcodeproj \
             -scheme "$SCHEME_NAME" \
@@ -74,10 +75,13 @@ jobs:
 
       - name: Verify Archive App Bundle
         run: |
+          ARCHIVE_PATH="$RUNNER_TEMP/$ARCHIVE_NAME"
           test -d "$ARCHIVE_PATH/Products/Applications/EmbyPulseiOS.app"
 
       - name: Package Unsigned IPA
         run: |
+          ARCHIVE_PATH="$RUNNER_TEMP/$ARCHIVE_NAME"
+          IPA_PATH="$RUNNER_TEMP/$IPA_NAME"
           mkdir -p "$RUNNER_TEMP/Payload"
           cp -R "$ARCHIVE_PATH/Products/Applications/EmbyPulseiOS.app" "$RUNNER_TEMP/Payload/EmbyPulseiOS.app"
           ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/Payload" "$IPA_PATH"
@@ -86,7 +90,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: EmbyPulseiOS-unsigned-ipa
-          path: ${{ env.IPA_PATH }}
+          path: ${{ runner.temp }}/${{ env.IPA_NAME }}
           if-no-files-found: error
 
       - name: Upload Archive Diagnostics
@@ -95,6 +99,6 @@ jobs:
         with:
           name: EmbyPulseiOS-build-diagnostics
           path: |
-            ${{ env.ARCHIVE_PATH }}
-            ${{ env.RESULT_BUNDLE_PATH }}
+            ${{ runner.temp }}/${{ env.ARCHIVE_NAME }}
+            ${{ runner.temp }}/${{ env.RESULT_BUNDLE_NAME }}
           if-no-files-found: error
