@@ -10,10 +10,23 @@ on:
 jobs:
   build-unsigned-ipa:
     runs-on: macos-14
+    timeout-minutes: 30
+    env:
+      PROJECT_NAME: EmbyPulseiOS
+      SCHEME_NAME: EmbyPulseiOS
+      XCODE_VERSION: "15.4"
+      ARCHIVE_PATH: ${{ runner.temp }}/EmbyPulseiOS.xcarchive
+      RESULT_BUNDLE_PATH: ${{ runner.temp }}/EmbyPulseiOS.xcresult
+      IPA_PATH: ${{ runner.temp }}/EmbyPulseiOS-unsigned.ipa
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
 
       - name: Show Xcode Version
         run: xcodebuild -version
@@ -24,42 +37,64 @@ jobs:
       - name: Regenerate Xcode Project
         run: |
           rm -rf EmbyPulseiOS.xcodeproj
-          xcodegen generate
+          xcodegen generate --spec project.yml
 
       - name: Force Xcode 15 Compatible Project Format
         run: |
           ruby -e '
             path = "EmbyPulseiOS.xcodeproj/project.pbxproj"
             text = File.read(path)
-            text.gsub!(/objectVersion = \d+;/, "objectVersion = 60;")
-            text.gsub!(/preferredProjectObjectVersion = \d+;/, "preferredProjectObjectVersion = 60;")
+            updated = false
+            updated ||= !!text.gsub!(/objectVersion = \d+;/, "objectVersion = 60;")
+            updated ||= !!text.gsub!(/preferredProjectObjectVersion = \d+;/, "preferredProjectObjectVersion = 60;")
+            updated ||= !!text.gsub!(/compatibilityVersion = "Xcode [^"]+";/, "compatibilityVersion = \"Xcode 15.0\";")
+            abort("project format patch failed") unless updated
             File.write(path, text)
           '
-          grep -n "objectVersion\\|preferredProjectObjectVersion" EmbyPulseiOS.xcodeproj/project.pbxproj || true
+          grep -n "objectVersion\\|preferredProjectObjectVersion\\|compatibilityVersion" EmbyPulseiOS.xcodeproj/project.pbxproj || true
+
+      - name: Validate Generated Project
+        run: |
+          xcodebuild -list -project EmbyPulseiOS.xcodeproj
 
       - name: Build Archive Without Signing
         run: |
           xcodebuild \
             -project EmbyPulseiOS.xcodeproj \
-            -scheme EmbyPulseiOS \
+            -scheme "$SCHEME_NAME" \
             -configuration Release \
             -destination "generic/platform=iOS" \
-            -archivePath "$RUNNER_TEMP/EmbyPulseiOS.xcarchive" \
+            -archivePath "$ARCHIVE_PATH" \
+            -resultBundlePath "$RESULT_BUNDLE_PATH" \
             clean archive \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             DEVELOPMENT_TEAM=""
 
+      - name: Verify Archive App Bundle
+        run: |
+          test -d "$ARCHIVE_PATH/Products/Applications/EmbyPulseiOS.app"
+
       - name: Package Unsigned IPA
         run: |
           mkdir -p "$RUNNER_TEMP/Payload"
-          cp -R "$RUNNER_TEMP/EmbyPulseiOS.xcarchive/Products/Applications/EmbyPulseiOS.app" "$RUNNER_TEMP/Payload/EmbyPulseiOS.app"
-          ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/Payload" "$RUNNER_TEMP/EmbyPulseiOS-unsigned.ipa"
+          cp -R "$ARCHIVE_PATH/Products/Applications/EmbyPulseiOS.app" "$RUNNER_TEMP/Payload/EmbyPulseiOS.app"
+          ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/Payload" "$IPA_PATH"
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
           name: EmbyPulseiOS-unsigned-ipa
-          path: ${{ runner.temp }}/EmbyPulseiOS-unsigned.ipa
+          path: ${{ env.IPA_PATH }}
+          if-no-files-found: error
+
+      - name: Upload Archive Diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: EmbyPulseiOS-build-diagnostics
+          path: |
+            ${{ env.ARCHIVE_PATH }}
+            ${{ env.RESULT_BUNDLE_PATH }}
           if-no-files-found: error
