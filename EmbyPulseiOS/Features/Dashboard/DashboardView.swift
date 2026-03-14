@@ -20,8 +20,8 @@ struct DashboardView: View {
                 }
 
                 sectionCard(
-                    title: "Overview",
-                    subtitle: "Library size, activity and runtime status",
+                    title: "核心总览",
+                    subtitle: "库存规模、活跃度与基础运行状态",
                     symbol: "rectangle.grid.2x2.fill"
                 ) {
                     overviewContent
@@ -29,8 +29,8 @@ struct DashboardView: View {
 
                 if hasLibrarySection {
                     sectionCard(
-                        title: "Libraries",
-                        subtitle: "Common libraries and content types",
+                        title: "我的媒体库",
+                        subtitle: "常用媒体库与内容类型分布",
                         symbol: "books.vertical.fill"
                     ) {
                         libraryViewsContent
@@ -39,8 +39,8 @@ struct DashboardView: View {
 
                 if hasActivitySection {
                     sectionCard(
-                        title: "Recent Activity",
-                        subtitle: "Latest arrivals and recent playback",
+                        title: "内容动态",
+                        subtitle: "最近入库与近期播放记录",
                         symbol: "sparkles.rectangle.stack.fill"
                     ) {
                         activityContent
@@ -49,8 +49,8 @@ struct DashboardView: View {
 
                 if hasInsightSection {
                     sectionCard(
-                        title: "Trend",
-                        subtitle: "Playback trend and active users",
+                        title: "活跃趋势",
+                        subtitle: "近期播放走势与高活跃用户",
                         symbol: "chart.line.uptrend.xyaxis"
                     ) {
                         insightContent
@@ -58,8 +58,8 @@ struct DashboardView: View {
                 }
 
                 sectionCard(
-                    title: "Live Sessions",
-                    subtitle: "Current sessions and playback devices",
+                    title: "实时播放",
+                    subtitle: "当前在线会话与播放设备",
                     symbol: "dot.radiowaves.left.and.right"
                 ) {
                     realtimeContent
@@ -71,7 +71,7 @@ struct DashboardView: View {
         }
         .coordinateSpace(name: "dashboard-scroll")
         .background(pageGradient.ignoresSafeArea())
-        .navigationTitle("Dashboard")
+        .navigationTitle("仪表板")
         .navigationBarTitleDisplayMode(.large)
         .task {
             await viewModel.refresh(appState: appState)
@@ -89,17 +89,17 @@ struct DashboardView: View {
             VStack(alignment: .leading, spacing: 16) {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Emby Pulse Console")
+                        Text("Emby Pulse 控制台")
                             .font(ConsoleDesign.heroTitleFont)
                             .foregroundStyle(.white)
 
-                        Text("Live status, playback trend and media operations")
+                        Text("媒体运营、活跃度与实时播放概览")
                             .font(.footnote)
                             .foregroundStyle(Color.white.opacity(0.80))
 
                         HStack(spacing: 8) {
-                            heroTag("Home")
-                            heroTag(viewModel.isLoading ? "Refreshing" : "Light Layout")
+                            heroTag("首页")
+                            heroTag(viewModel.isLoading ? "刷新中" : "轻量布局")
                         }
                     }
 
@@ -130,19 +130,19 @@ struct DashboardView: View {
                 }
 
                 HStack(spacing: 10) {
-                    heroMetric(title: "Total Plays", value: "\(viewModel.dashboard?.totalPlays ?? 0)")
-                    heroMetric(title: "Active Users", value: "\(viewModel.dashboard?.activeUsers ?? 0)")
-                    heroMetric(title: "Live Sessions", value: "\(viewModel.liveSessions.count)")
+                    heroMetric(title: "总播放", value: "\(viewModel.dashboard?.totalPlays ?? 0)")
+                    heroMetric(title: "活跃用户", value: "\(viewModel.dashboard?.activeUsers ?? 0)")
+                    heroMetric(title: "实时会话", value: "\(viewModel.liveSessions.count)")
                 }
 
                 HStack(spacing: 10) {
-                    Label("Updated \(lastUpdatedText)", systemImage: "clock")
+                    Label("更新于 \(lastUpdatedText)", systemImage: "clock")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(Color.white.opacity(0.78))
 
                     Spacer(minLength: 0)
 
-                    Text(viewModel.liveSessions.isEmpty ? "No active session" : "\(viewModel.liveSessions.count) active sessions")
+                    Text(viewModel.liveSessions.isEmpty ? "当前平台空闲" : "当前有 \(viewModel.liveSessions.count) 个在线会话")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 10)
@@ -222,10 +222,10 @@ struct DashboardView: View {
     private var momentumStrip: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 10) {
-                snapshotPill(title: "Items", value: "\(totalLibraryItems)", subtitle: "Library", tint: .indigo)
-                snapshotPill(title: "Trend", value: String(format: "%.1f h", totalTrendHours), subtitle: "Recent hours", tint: .cyan)
-                snapshotPill(title: "Latest", value: "\(viewModel.latestMedia.count)", subtitle: "New content", tint: .mint)
-                snapshotPill(title: "Live", value: "\(viewModel.liveSessions.count)", subtitle: "Active now", tint: .orange)
+                snapshotPill(title: "媒体总量", value: "\(totalLibraryItems)", subtitle: "库存总览", tint: .indigo)
+                snapshotPill(title: "趋势时长", value: String(format: "%.1f h", totalTrendHours), subtitle: "近期播放", tint: .cyan)
+                snapshotPill(title: "最近入库", value: "\(viewModel.latestMedia.count)", subtitle: "内容更新", tint: .mint)
+                snapshotPill(title: "在线会话", value: "\(viewModel.liveSessions.count)", subtitle: "当前活跃", tint: .orange)
             }
             .padding(.horizontal, 1)
         }
@@ -271,26 +271,26 @@ struct DashboardView: View {
 
     private var mediaCapacityContent: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-            dashboardPill(title: "Total Items", value: "\(totalLibraryItems)", tint: .indigo)
-            dashboardPill(title: "Movies", value: "\(viewModel.dashboard?.library.movie ?? 0)", tint: .blue)
-            dashboardPill(title: "Series", value: "\(viewModel.dashboard?.library.series ?? 0)", tint: .mint)
-            dashboardPill(title: "Episodes", value: "\(viewModel.dashboard?.library.episode ?? 0)", tint: .orange)
+            dashboardPill(title: "总收录", value: "\(totalLibraryItems)", tint: .indigo)
+            dashboardPill(title: "电影", value: "\(viewModel.dashboard?.library.movie ?? 0)", tint: .blue)
+            dashboardPill(title: "剧集", value: "\(viewModel.dashboard?.library.series ?? 0)", tint: .mint)
+            dashboardPill(title: "剧集单元", value: "\(viewModel.dashboard?.library.episode ?? 0)", tint: .orange)
         }
     }
 
     private var coreMetricsContent: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-            dashboardMetricCard("Total Plays", "\(viewModel.dashboard?.totalPlays ?? 0)", "play.circle.fill", .indigo)
-            dashboardMetricCard("Active Users", "\(viewModel.dashboard?.activeUsers ?? 0)", "person.2.fill", .blue)
-            dashboardMetricCard("Duration", formattedHours(from: viewModel.dashboard?.totalDuration ?? 0), "clock.fill", .mint)
-            dashboardMetricCard("Live Sessions", "\(viewModel.liveSessions.count)", "dot.radiowaves.left.and.right", .orange)
+            dashboardMetricCard("总播放", "\(viewModel.dashboard?.totalPlays ?? 0)", "play.circle.fill", .indigo)
+            dashboardMetricCard("活跃用户", "\(viewModel.dashboard?.activeUsers ?? 0)", "person.2.fill", .blue)
+            dashboardMetricCard("总时长", formattedHours(from: viewModel.dashboard?.totalDuration ?? 0), "clock.fill", .mint)
+            dashboardMetricCard("实时会话", "\(viewModel.liveSessions.count)", "dot.radiowaves.left.and.right", .orange)
         }
     }
 
     private var activityContent: some View {
         VStack(alignment: .leading, spacing: 14) {
             if !viewModel.latestMedia.isEmpty {
-                moduleTitle("Latest Arrivals", systemImage: "square.stack.3d.down.right.fill")
+                moduleTitle("最近入库", systemImage: "square.stack.3d.down.right.fill")
                 latestMediaContent
             }
 
@@ -299,7 +299,7 @@ struct DashboardView: View {
             }
 
             if !viewModel.recentActivities.isEmpty {
-                moduleTitle("Recent Playback", systemImage: "play.rectangle.on.rectangle.fill")
+                moduleTitle("最近播放", systemImage: "play.rectangle.on.rectangle.fill")
                 recentPlaybackContent
             }
         }
@@ -308,7 +308,7 @@ struct DashboardView: View {
     @ViewBuilder
     private var libraryViewsContent: some View {
         if viewModel.libraries.isEmpty {
-            emptyCard("No library data")
+            emptyCard("暂无媒体库数据")
         } else {
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 12) {
@@ -418,7 +418,7 @@ struct DashboardView: View {
     private var insightContent: some View {
         VStack(alignment: .leading, spacing: 14) {
             if !viewModel.trendPoints.isEmpty {
-                moduleTitle("Playback Trend", systemImage: "chart.bar.xaxis.ascending")
+                moduleTitle("播放趋势", systemImage: "chart.bar.xaxis.ascending")
                 trendTrackingContent
             }
 
@@ -427,7 +427,7 @@ struct DashboardView: View {
             }
 
             if !viewModel.platinumUsers.isEmpty {
-                moduleTitle("Top Users", systemImage: "trophy.fill")
+                moduleTitle("高活跃用户", systemImage: "trophy.fill")
                 platinumRankingContent
             }
         }
@@ -438,8 +438,8 @@ struct DashboardView: View {
         VStack(alignment: .leading, spacing: 10) {
             Chart(viewModel.trendPoints) { point in
                 BarMark(
-                    x: .value("Date", point.label),
-                    y: .value("Hours", point.hours)
+                    x: .value("日期", point.label),
+                    y: .value("小时", point.hours)
                 )
                 .foregroundStyle(
                     LinearGradient(
@@ -459,8 +459,8 @@ struct DashboardView: View {
             }
 
             HStack(spacing: 8) {
-                dashboardPill(title: "Hours", value: String(format: "%.1f h", totalTrendHours), tint: .cyan)
-                dashboardPill(title: "Points", value: "\(viewModel.trendPoints.count)", tint: .indigo)
+                dashboardPill(title: "累计时长", value: String(format: "%.1f h", totalTrendHours), tint: .cyan)
+                dashboardPill(title: "数据点", value: "\(viewModel.trendPoints.count)", tint: .indigo)
             }
         }
         .padding(12)
@@ -470,10 +470,10 @@ struct DashboardView: View {
     @ViewBuilder
     private var platinumRankingContent: some View {
         HStack(spacing: 8) {
-            periodChip(title: "Day", period: .day)
-            periodChip(title: "Week", period: .week)
-            periodChip(title: "Month", period: .month)
-            periodChip(title: "All", period: .all)
+            periodChip(title: "今日", period: .day)
+            periodChip(title: "本周", period: .week)
+            periodChip(title: "本月", period: .month)
+            periodChip(title: "总榜", period: .all)
         }
 
         VStack(spacing: 8) {
@@ -494,7 +494,7 @@ struct DashboardView: View {
                             .font(.subheadline.weight(.semibold))
                             .lineLimit(1)
 
-                        Text("Plays \(item.plays) · \(String(format: "%.1f", item.totalHours)) h")
+                        Text("播放 \(item.plays) 次 · \(String(format: "%.1f", item.totalHours)) h")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -509,7 +509,7 @@ struct DashboardView: View {
     @ViewBuilder
     private var realtimeContent: some View {
         if viewModel.liveSessions.isEmpty {
-            emptyCard("No live session")
+            emptyCard("当前没有正在播放的会话")
         } else {
             VStack(spacing: 8) {
                 ForEach(viewModel.liveSessions.prefix(4)) { session in
@@ -520,10 +520,10 @@ struct DashboardView: View {
                             .padding(.top, 6)
 
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(session.nowPlayingItem?.name ?? "Unknown Content")
+                            Text(session.nowPlayingItem?.name ?? "未知内容")
                                 .font(.subheadline.weight(.semibold))
 
-                            Text("\(session.userName ?? "Unknown User") · \(session.client ?? "Unknown Client") · \(session.deviceName ?? "Unknown Device")")
+                            Text("\(session.userName ?? "未知用户") · \(session.client ?? "未知客户端") · \(session.deviceName ?? "未知设备")")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -564,9 +564,9 @@ struct DashboardView: View {
     }
 
     private var lastUpdatedText: String {
-        guard let date = viewModel.lastUpdatedAt else { return "Never" }
+        guard let date = viewModel.lastUpdatedAt else { return "尚未刷新" }
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.locale = Locale(identifier: "zh_CN")
         formatter.dateFormat = "MM-dd HH:mm"
         return formatter.string(from: date)
     }
@@ -713,22 +713,22 @@ struct DashboardView: View {
     private func collectionTypeTitle(_ raw: String) -> String {
         switch raw.lowercased() {
         case "movies", "movie":
-            return "Movie Library"
+            return "电影库"
         case "tvshows", "tvshow", "series":
-            return "Series Library"
+            return "剧集库"
         case "music":
-            return "Music Library"
+            return "音乐库"
         default:
-            return raw.isEmpty ? "Unknown Type" : raw
+            return raw.isEmpty ? "未知类型" : raw
         }
     }
 
     private func itemType(_ raw: String) -> String {
         switch raw.lowercased() {
         case "movie":
-            return "Movie"
+            return "电影"
         case "episode":
-            return "Episode"
+            return "剧集"
         default:
             return raw
         }

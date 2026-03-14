@@ -6,7 +6,7 @@ struct RootView: View {
     var body: some View {
         Group {
             if appState.isCheckingSession {
-                ProgressView("Checking session...")
+                ProgressView("正在检查会话...")
             } else if appState.isAuthenticated {
                 MainTabView()
             } else {
@@ -31,7 +31,7 @@ private struct MainTabView: View {
                 DashboardView()
             }
             .tabItem {
-                Label("Dashboard", systemImage: "rectangle.grid.2x2.fill")
+                Label("仪表板", systemImage: "rectangle.grid.2x2.fill")
             }
             .tag(MainTab.dashboard)
 
@@ -39,7 +39,7 @@ private struct MainTabView: View {
                 AnalysisHubView()
             }
             .tabItem {
-                Label("Analysis", systemImage: "chart.xyaxis.line")
+                Label("分析", systemImage: "chart.xyaxis.line")
             }
             .tag(MainTab.analysis)
 
@@ -47,7 +47,7 @@ private struct MainTabView: View {
                 RequestsView()
             }
             .tabItem {
-                Label("Requests", systemImage: "text.bubble.fill")
+                Label("工单", systemImage: "text.bubble.fill")
             }
             .tag(MainTab.requests)
 
@@ -55,7 +55,7 @@ private struct MainTabView: View {
                 UserManagementView()
             }
             .tabItem {
-                Label("Users", systemImage: "person.3.fill")
+                Label("用户", systemImage: "person.3.fill")
             }
             .tag(MainTab.users)
 
@@ -63,7 +63,7 @@ private struct MainTabView: View {
                 MoreHubView()
             }
             .tabItem {
-                Label("More", systemImage: "ellipsis.circle.fill")
+                Label("更多", systemImage: "ellipsis.circle.fill")
             }
             .tag(MainTab.more)
         }
@@ -108,7 +108,7 @@ private struct MainTabView: View {
                     Image(systemName: "magnifyingglass")
                         .font(.subheadline.weight(.semibold))
 
-                    Text("Search Library")
+                    Text("搜索媒体库")
                         .font(.subheadline.weight(.semibold))
                         .lineLimit(1)
                 }
@@ -122,7 +122,7 @@ private struct MainTabView: View {
 
             Spacer(minLength: 8)
 
-            Text(appState.appearanceMode == .dark ? "Dark" : "Light")
+            Text(appState.appearanceMode == .dark ? "深色" : "浅色")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 9)
@@ -141,7 +141,7 @@ private struct MainTabView: View {
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(appState.appearanceMode == .dark ? "Switch to light mode" : "Switch to dark mode")
+            .accessibilityLabel(appState.appearanceMode == .dark ? "切换到浅色模式" : "切换到深色模式")
 
             AdminAccountMenu()
         }
