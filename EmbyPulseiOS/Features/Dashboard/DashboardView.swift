@@ -549,7 +549,7 @@ struct DashboardView: View {
 
             Text(viewModel.liveSessions.isEmpty ? "静态时段" : "活跃时段")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(viewModel.liveSessions.isEmpty ? .secondary : .green)
+                .foregroundStyle(viewModel.liveSessions.isEmpty ? Color.secondary : Color.green)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
                 .background((viewModel.liveSessions.isEmpty ? Color.secondary : Color.green).opacity(isDark ? 0.18 : 0.10))
