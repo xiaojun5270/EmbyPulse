@@ -95,28 +95,21 @@ private struct MainTabView: View {
 
     private var topActionBar: some View {
         let progress = selectedTab == .dashboard ? min(max(dashboardCollapseProgress, 0), 1) : 0
-        let compact = progress > 0.72
 
-        return HStack(spacing: 10 - (2 * progress)) {
+        return HStack(spacing: 10) {
             Button {
                 showingSearch = true
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "magnifyingglass")
-                    if !compact {
-                        Text("搜索媒体库")
-                            .transition(.opacity.combined(with: .move(edge: .leading)))
-                    }
+                    Text("搜索媒体库")
                 }
                 .font(.subheadline.weight(.semibold))
-                .padding(.horizontal, compact ? 10 : 12)
-                .padding(.vertical, compact ? 8 : 9)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 9)
                 .background(
                     LinearGradient(
-                        colors: [
-                            Color.indigo.opacity(0.16 + (0.10 * progress)),
-                            Color.cyan.opacity(0.12 + (0.08 * progress))
-                        ],
+                        colors: [Color.indigo.opacity(0.16), Color.cyan.opacity(0.12)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
@@ -125,72 +118,60 @@ private struct MainTabView: View {
             }
             .buttonStyle(.plain)
 
-            if compact {
-                Text("仪表盘")
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(.primary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(Color.primary.opacity(appState.appearanceMode == .dark ? 0.10 : 0.06))
-                    .clipShape(Capsule())
-                    .transition(.opacity.combined(with: .scale))
-            }
+            Spacer(minLength: 8)
 
-            Spacer(minLength: max(4, 8 - (4 * progress)))
-
-            if !compact {
-                Text(appState.appearanceMode == .dark ? "暗黑" : "浅色")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 6)
-                    .background(Color.secondary.opacity(0.12))
-                    .clipShape(Capsule())
-                    .transition(.opacity.combined(with: .move(edge: .trailing)))
-            }
+            Text(appState.appearanceMode == .dark ? "暗黑" : "浅色")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                .background(Color.secondary.opacity(0.12))
+                .clipShape(Capsule())
 
             Button {
                 appState.toggleAppearance()
             } label: {
                 Image(systemName: appState.appearanceMode == .dark ? "sun.max.fill" : "moon.fill")
                     .font(.subheadline.weight(.semibold))
-                    .frame(width: compact ? 30 : 34, height: compact ? 30 : 34)
-                    .background(Color.secondary.opacity(0.14 + (0.04 * progress)))
+                    .frame(width: 34, height: 34)
+                    .background(Color.secondary.opacity(0.14))
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel(appState.appearanceMode == .dark ? "切换到浅色模式" : "切换到暗黑模式")
 
             AdminAccountMenu()
-                .scaleEffect(1 - (0.08 * progress))
         }
-        .padding(compact ? 8 : 10)
+        .padding(10)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(.ultraThinMaterial)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(appState.appearanceMode == .dark ? 0.10 : 0.34),
+                                    Color.white.opacity(0.01)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .stroke(
-                            appState.appearanceMode == .dark ? Color.white.opacity(0.10 + (0.02 * progress)) : Color.black.opacity(0.05 + (0.01 * progress)),
+                            appState.appearanceMode == .dark ? Color.white.opacity(0.10) : Color.black.opacity(0.05),
                             lineWidth: 1
                         )
                 )
-                .overlay(alignment: .topLeading) {
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(appState.appearanceMode == .dark ? 0.12 : 0.36),
-                            Color.white.opacity(0.01)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                }
                 .shadow(
-                    color: Color.black.opacity(appState.appearanceMode == .dark ? 0.22 : 0.06 + (0.03 * progress)),
-                    radius: 8 + (4 * progress),
+                    color: Color.black.opacity(appState.appearanceMode == .dark ? 0.22 : 0.08),
+                    radius: 10 + (2 * progress),
                     x: 0,
-                    y: 4 + (2 * progress)
+                    y: 4
                 )
         )
         .padding(.horizontal, 12)
@@ -198,8 +179,8 @@ private struct MainTabView: View {
         .background(
             LinearGradient(
                 colors: appState.appearanceMode == .dark
-                    ? [Color(red: 0.07, green: 0.10, blue: 0.15).opacity(0.82 + (0.08 * progress)), Color.clear]
-                    : [Color.white.opacity(0.9 + (0.08 * progress)), Color.clear],
+                    ? [Color(red: 0.07, green: 0.10, blue: 0.15).opacity(0.84), Color.clear]
+                    : [Color.white.opacity(0.92), Color.clear],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -207,10 +188,7 @@ private struct MainTabView: View {
         .overlay(alignment: .bottom) {
             Divider().opacity(0.22)
         }
-        .animation(.spring(response: 0.3, dampingFraction: 0.84), value: compact)
-        .animation(.easeInOut(duration: 0.18), value: progress)
     }
-
 }
 
 private enum MainTab: Hashable {

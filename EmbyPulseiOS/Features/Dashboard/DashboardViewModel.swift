@@ -16,6 +16,8 @@ final class DashboardViewModel: ObservableObject {
     @Published var lastUpdatedAt: Date?
 
     func refresh(appState: AppState) async {
+        guard !isLoading else { return }
+
         isLoading = true
         errorMessage = nil
         warningMessage = nil
@@ -35,65 +37,58 @@ final class DashboardViewModel: ObservableObject {
             period: platinumPeriod
         )
 
-        var errors: [String] = []
+        var criticalFailures: [String] = []
+        var supplementaryFailureCount = 0
 
         do {
             dashboard = try await dashboardTask
         } catch {
-            dashboard = nil
-            errors.append("仪表盘指标")
+            criticalFailures.append("核心概览")
         }
 
         do {
             liveSessions = try await liveTask
         } catch {
-            liveSessions = []
-            errors.append("实时会话")
+            criticalFailures.append("实时会话")
         }
 
         do {
             latestMedia = try await latestTask
         } catch {
-            latestMedia = []
-            errors.append("最近入库")
+            supplementaryFailureCount += 1
         }
 
         do {
             recentActivities = try await recentTask
         } catch {
-            recentActivities = []
-            errors.append("最近播放")
+            supplementaryFailureCount += 1
         }
 
         do {
             trendPoints = try await trendTask
         } catch {
-            trendPoints = []
-            errors.append("趋势追踪")
+            supplementaryFailureCount += 1
         }
 
         do {
             libraries = try await librariesTask
         } catch {
-            libraries = []
-            errors.append("我的媒体库")
+            supplementaryFailureCount += 1
         }
 
         do {
             platinumUsers = try await rankingTask
         } catch {
-            platinumUsers = []
-            errors.append("白金观影榜")
+            supplementaryFailureCount += 1
         }
 
-        if let first = errors.first {
+        if let first = criticalFailures.first {
             errorMessage = "加载失败：\(first)"
+        } else if lastUpdatedAt == nil, supplementaryFailureCount > 0 {
+            warningMessage = "部分扩展模块首次加载失败"
         }
-        if errors.count > 1 {
-            warningMessage = "部分模块加载失败（\(errors.count)项）"
-        }
-        lastUpdatedAt = Date()
 
+        lastUpdatedAt = Date()
         isLoading = false
     }
 
@@ -104,7 +99,6 @@ final class DashboardViewModel: ObservableObject {
                 period: platinumPeriod
             )
         } catch {
-            platinumUsers = []
             errorMessage = error.localizedDescription
         }
     }
